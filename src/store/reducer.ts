@@ -2,13 +2,13 @@ import { GeoStoreState } from "./state";
 import { Reducer } from "redux";
 import { GeoAction } from "./actionCreator";
 
-export const initialState: GeoStoreState = {
+export const geoInitialState: GeoStoreState = {
     cycles: 0,
     apiState: 'unset',
 }
 
 export const geoReducer: Reducer<GeoStoreState, GeoAction> = (state, action) => {
-    const geoState = state || initialState;
+    const geoState = state || geoInitialState;
     switch (action.type) {
         case 'SET_ERROR':
             return { ...geoState, error: action.payload.error };

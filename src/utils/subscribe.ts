@@ -29,8 +29,11 @@ export const geoSubscribe = (
         }
     };
     const onError: PositionErrorCallback = error => {
-        store.dispatch(setError(error));
-        store.dispatch(setGeoApiState('working'));
+        const geoCurrent = geo(store);
+        if (geoCurrent.apiState !== 'denied' && geoCurrent.apiState !== 'error') {
+            store.dispatch(setError(error));
+            store.dispatch(setGeoApiState('working'));
+        }
     };
 
     const geoInterval = setInterval(() => {

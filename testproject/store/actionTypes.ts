@@ -1,0 +1,1 @@
+export type TestActionTypes = 'SET_GEO';

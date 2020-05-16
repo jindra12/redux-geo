@@ -8,7 +8,7 @@ const setCycle = (geo: GeoStoreState, next: Dispatch<AnyAction>, callback?: (url
     }
 }
 
-export const urlMiddleware = (
+export const geoMiddleware = (
     callback?: (url: GeoStoreState) => AnyAction,
 ): Middleware => (
     api: MiddlewareAPI<Dispatch, CombinedState<{ geo: GeoStoreState }>>
@@ -21,6 +21,9 @@ export const urlMiddleware = (
         case 'SET_ERROR':
             if (action.payload.error?.code === action.payload.error?.PERMISSION_DENIED) {
                 next(setGeoApiState('denied'));
+                next(killGeoApi());
+            } else {
+                next(setGeoApiState('error'));
                 next(killGeoApi());
             }
             setCycle(geo, next, callback);
