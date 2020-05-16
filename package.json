@@ -1,0 +1,18 @@
+{
+  "name": "redux-geo-dev",
+  "version": "1.0.0",
+  "description": "Redux library for geolocation",
+  "main": "./dist/index.js",
+  "repository": "https://github.com/jindra12/redux-geo.git",
+  "author": "Jan Jindráček",
+  "license": "MIT",
+  "scripts": {
+    "build": "rm ./dist/index.js ./dist/index.d.ts; rm -rf ./dist/store; rm -rf ./dist/utils; yarn tsc"
+  },
+  "devDependencies": {
+    "redux": "^4.0.5",
+    "@types/redux": "^3.6.0",
+    "tslint": "^6.1.2",
+    "typescript": "^3.8.3"
+  }
+}
