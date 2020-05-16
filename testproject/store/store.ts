@@ -1,4 +1,4 @@
-import { geoCombineReducers, geoInitialState, GeoStoreState, geoSubscribe, geoMiddleware } from 'redux-geo';
+import { geoCombineReducers, geoInitialState, GeoStoreState, geoSubscribe } from 'redux-geo';
 import { testReducer, initialTestStore } from './reducer';
 import { createStore, applyMiddleware, Middleware, AnyAction } from 'redux';
 import thunk, { ThunkMiddleware } from 'redux-thunk';
@@ -17,6 +17,6 @@ interface RealTestState {
 export const store = createStore(reducers, {
     test: initialTestStore,
     geo: geoInitialState,
-}, applyMiddleware(thunk as ThunkMiddleware<RealTestState, AnyAction>, geoMiddleware(setGps)));
+}, applyMiddleware(thunk as ThunkMiddleware<RealTestState, AnyAction>));
 
-geoSubscribe(store, 2000, true, 0.5);
+geoSubscribe(store, 500, 10, true, 0.5);

@@ -1,21 +1,23 @@
 import { Store, CombinedState } from "redux";
 import { GeoStoreState } from "../store/state";
-import { setGeoApiState, setCycles, setLocation, setError, killGeoApi } from "../store/actionCreator";
+import { setGeoApiState, setLocation, setError } from "../store/actionCreator";
 
 const geo = (store: Store<CombinedState<{ geo: GeoStoreState }>>) => store.getState().geo;
 
 const locator: Geolocation | undefined = navigator && navigator.geolocation;
 
+const unsubscribe = (store: Store) => () => store.dispatch(setGeoApiState('done'));
+
 export const geoSubscribe = (
     store: Store<CombinedState<{ geo: GeoStoreState }>>,
+    cycles: number,
     timeout: number,
     enableHighAccuracy: boolean = true,
     accuracy: number = 0,
-): number => {
+): (() => void) | null => {
     if (!locator) {
         store.dispatch(setGeoApiState('error'));
-        store.dispatch(killGeoApi());
-        return -1;
+        return null;
     }
     store.dispatch(setGeoApiState('waiting'));
 
@@ -32,14 +34,13 @@ export const geoSubscribe = (
         const geoCurrent = geo(store);
         if (geoCurrent.apiState !== 'denied' && geoCurrent.apiState !== 'error') {
             store.dispatch(setError(error));
-            store.dispatch(setGeoApiState('working'));
+            store.dispatch(setGeoApiState(error.code === error.PERMISSION_DENIED ? 'denied' : 'error'));
+            cycles = 0;
         }
     };
 
     const geoInterval = setInterval(() => {
-        const geoCurrent = geo(store);
-
-        const unsubscribe = locator.watchPosition(
+        const locatorUnsubscribe = locator.watchPosition(
             onSuccess,
             onError,
             { enableHighAccuracy, timeout },
@@ -51,15 +52,15 @@ export const geoSubscribe = (
             { enableHighAccuracy, timeout },
         )
 
-        if (!geoCurrent.cycles) {
+        if (!cycles) {
             store.dispatch(setGeoApiState('done'));
-            locator.clearWatch(unsubscribe);
+            locator.clearWatch(locatorUnsubscribe);
             clearInterval(geoInterval);
         } else {
             store.dispatch(setGeoApiState('waiting'));
-            store.dispatch(setCycles(geoCurrent.cycles - 1));
+            cycles--;
         }
     }, timeout);
 
-    return geoInterval;
+    return unsubscribe(store);
 }

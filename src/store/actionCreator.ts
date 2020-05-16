@@ -26,15 +26,3 @@ export const setGeoApiState = (apiState: GeoApiState): GeoAction => ({
         apiState
     }
 });
-
-export const setCycles = (cycles: number): GeoAction => ({
-    type: 'SET_CYCLES',
-    payload: {
-        cycles
-    }
-});
-
-export const killGeoApi = (): GeoAction => ({
-    type: 'GEO_API_KILL',
-    payload: {}
-});
