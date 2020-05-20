@@ -1,4 +1,4 @@
-export type GeoApiState = 'unset' | 'waiting' | 'error' | 'denied' | 'done' | 'working';
+export type GeoApiState = 'unset' | 'error' | 'denied' | 'done' | 'working';
 
 export interface GeoStoreState {
     apiState?: GeoApiState;
