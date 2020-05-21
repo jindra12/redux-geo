@@ -1,21 +1,21 @@
 import { Store } from "redux";
 import { setGeoApiState, setLocation, setError } from "../store/actionCreator";
-
-const locator: Geolocation | undefined = navigator && navigator.geolocation;
+import { debounce } from "lodash";
+import { PromisifyGeoSubscriber } from "./promisifyGeoSubscriber";
 
 const wait = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
 interface AsyncInterval {
-    (promise: Promise<void>, ms: number): Promise<void>;
+    (promise: () => Promise<void>, ms: number): Promise<void>;
     active: boolean;
     deactivate: () => void;
 }
 
 const createAsyncInterval = (): AsyncInterval => {
-    const asyncInterval: AsyncInterval = async (promiseFactory, ms) => {
+    const asyncInterval: AsyncInterval = async (promise, ms) => {
         while (asyncInterval.active) {
             try {
-                await promiseFactory;
+                await promise();
             } catch {
                 asyncInterval.deactivate();
             }
@@ -29,12 +29,6 @@ const createAsyncInterval = (): AsyncInterval => {
     return asyncInterval;
 }
 
-const promisifyGeoSubscribe = (
-    loc: Geolocation, options: PositionOptions
-) => new Promise<Position>((resolve, reject) => {
-    loc.watchPosition(resolve, reject, options);
-});
-
 export const geoSubscribe = (
     store: Store,
     waitMs: number,
@@ -42,12 +36,13 @@ export const geoSubscribe = (
     enableHighAccuracy: boolean = true,
     accuracy: number = 0,
 ): (() => void) | null => {
-    if (!locator) {
+    const service = new PromisifyGeoSubscriber({ enableHighAccuracy, timeout: waitMs })
+    if (!service.hasLocator()) {
         store.dispatch(setGeoApiState('error'));
         return null;
     }
 
-    const onSuccess: PositionCallback = position => {
+    const onSuccess: PositionCallback = debounce(position => {
         if (position.coords.accuracy >= accuracy && cycles !== 0) {
             store.dispatch(setLocation(position.coords.latitude, position.coords.longitude));
         }
@@ -58,17 +53,17 @@ export const geoSubscribe = (
         if (cycles !== 'infinite') {
             cycles--;
         }
-    };
-    const onError: PositionErrorCallback = error => {
+    }, waitMs > 10 ? waitMs - 10 : 0);
+    const onError: PositionErrorCallback = debounce(error => {
         store.dispatch(setError(error));
         store.dispatch(setGeoApiState(error.code === error.PERMISSION_DENIED ? 'denied' : 'error'));
         cycles = 0;
-    };
+    }, waitMs > 10 ? waitMs - 10 : 0);
 
     const geoInterval = createAsyncInterval();
 
     geoInterval(
-        promisifyGeoSubscribe(locator, { enableHighAccuracy })
+        () => service.subscribe()
             .then(onSuccess)
             .catch(onError),
         waitMs,

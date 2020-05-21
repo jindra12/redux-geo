@@ -7,16 +7,16 @@ store.subscribe(() => {
     console.log(store.getState());
 });
 
-let unsubscribe = geoSubscribe(store, 1000, 5, true, 0.5);
+let unsubscribe = geoSubscribe(store, 10000, 10, true, 0.5);
 
 if (!unsubscribe) {
     console.error('NO GPS!');
 } else {
     (async () => {
-        await wait(20000);
+        await wait(1100000);
         unsubscribe();
-        unsubscribe = geoSubscribe(store, 1000, 5, false)!;
-        await wait(10000);
+        unsubscribe = geoSubscribe(store, 10000, 5, false)!;
+        await wait(1000000);
         unsubscribe();
     })();
 }
