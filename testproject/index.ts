@@ -16,7 +16,9 @@ if (!unsubscribe) {
         await wait(8000);
         unsubscribe();
         unsubscribe = geoSubscribe(store, 1000, 1, false)!;
-        await wait(2000);
+        await wait(3000);
         unsubscribe();
+        // tslint:disable-next-line: no-unused-expression
+        geoSubscribe(store, 1000)!;
     })();
 }

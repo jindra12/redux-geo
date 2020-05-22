@@ -45,17 +45,16 @@ export const geoSubscribe = (
         if (position.coords.accuracy >= accuracy && cycles !== 0) {
             store.dispatch(setLocation(position.coords.latitude, position.coords.longitude));
         }
+        if (cycles !== 'infinite') {
+            cycles--;
+        }
         if (cycles === 0) {
             store.dispatch(setGeoApiState('done'));
             geoInterval.deactivate();
         }
-        if (cycles !== 'infinite') {
-            cycles--;
-        }
     };
     const onError: PositionErrorCallback = error => {
         store.dispatch(setError(error));
-        store.dispatch(setGeoApiState(error.code === error.PERMISSION_DENIED ? 'denied' : 'error'));
         geoInterval.deactivate();
         cycles = 0;
     };
