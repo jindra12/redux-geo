@@ -1,6 +1,5 @@
 import { Store } from "redux";
 import { setGeoApiState, setLocation, setError } from "../store/actionCreator";
-import { debounce } from "lodash";
 import { PromisifyGeoSubscriber } from "./promisifyGeoSubscriber";
 
 const wait = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
@@ -36,13 +35,13 @@ export const geoSubscribe = (
     enableHighAccuracy: boolean = true,
     accuracy: number = 0,
 ): (() => void) | null => {
-    const service = new PromisifyGeoSubscriber({ enableHighAccuracy, timeout: waitMs })
+    const service = new PromisifyGeoSubscriber({ enableHighAccuracy })
     if (!service.hasLocator()) {
         store.dispatch(setGeoApiState('error'));
         return null;
     }
 
-    const onSuccess: PositionCallback = debounce(position => {
+    const onSuccess: PositionCallback = position => {
         if (position.coords.accuracy >= accuracy && cycles !== 0) {
             store.dispatch(setLocation(position.coords.latitude, position.coords.longitude));
         }
@@ -53,12 +52,13 @@ export const geoSubscribe = (
         if (cycles !== 'infinite') {
             cycles--;
         }
-    }, waitMs > 10 ? waitMs - 10 : 0);
-    const onError: PositionErrorCallback = debounce(error => {
+    };
+    const onError: PositionErrorCallback = error => {
         store.dispatch(setError(error));
         store.dispatch(setGeoApiState(error.code === error.PERMISSION_DENIED ? 'denied' : 'error'));
+        geoInterval.deactivate();
         cycles = 0;
-    }, waitMs > 10 ? waitMs - 10 : 0);
+    };
 
     const geoInterval = createAsyncInterval();
 

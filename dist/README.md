@@ -1,36 +1,46 @@
-# Redux-url-sync documentation
+# Redux-geo documentation
 
 No other dependencies needed besides redux!
-This is my first package to create, so be careful :) .
+This package will allow you to periodically update your redux store with user gps information.
 
 ## Setting up your store
 
 ```typescript
-const reducers = urlCombineReducers({
-    test: testReducer,
+const reducers = geoCombineReducers({});
+
+export const store: Store<CombinedState<{ geo: GeoStoreState }>, AnyAction> = createStore(reducers, {
+    geo: geoInitialState,
 });
-
-export const store = createStore(reducers, {
-    test: testInitialState,
-    url: urlInitialState,
-}, applyMiddleware(thunk as ThunkMiddleware<IRealTestState, AnyAction>, urlMiddleware(updateFromUrl)));
-
-subscribeToUrl(store);
 ```
 
-## Example with redux-thunk
+## Example of use
 
 ```typescript
-export const setUrlFirstName = (
-    firstName: string
-): ThunkAction<void, IRealTestState, undefined, AnyAction> => (dispatch, store) => {
-    const lastName = store().test.lastName || '';
-    dispatch(setUrlQuery({
-        firstName,
-        lastName,
-    }));
-    dispatch(setFirstName(firstName));
-};
+const wait = (time: number) => new Promise(resolve => setTimeout(resolve, time));
+store.subscribe(() => {
+    // tslint:disable-next-line: no-console
+    console.log(store.getState());
+});
+
+let unsubscribe = geoSubscribe(store, 2000, 2, true, 0.5);
+
+if (!unsubscribe) {
+    console.error('NO GPS!');
+} else {
+    (async () => {
+        await wait(8000);
+        unsubscribe();
+        unsubscribe = geoSubscribe(store, 1000, 1, false)!;
+        await wait(2000);
+        unsubscribe();
+    })();
+}
 ```
+
+### Relevant information
+
+This package may cause browsers like Firefox to repeatedly ask for user location, if the user does not give permanent access to geolocation.
+The package may execute promisified geolocation action after cancelling, if such action has already been scheduled.
+I'm still very much a beginner, so use this with caution.
 
 For more information, see the test project right in this repo.
