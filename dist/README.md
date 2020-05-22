@@ -49,6 +49,6 @@ I'm still very much a beginner, so use this with caution.
 The wait cycle works like this:
 1) Wait for geo api to respond
 2) Wait for set amount of ms
-3) Repeat until cycles run out
+3) Repeat until cycles run out / unsubscribed / denied
 
 For more information, see the test project right in this repo.
