@@ -2138,9 +2138,7 @@ readdirp@~3.4.0:
     picomatch "^2.2.1"
 
 "redux-geo@file:../dist":
-  version "1.0.0"
-  dependencies:
-    redux "^4.0.5"
+  version "1.0.1"
 
 redux-thunk@*, redux-thunk@^2.3.0:
   version "2.3.0"
